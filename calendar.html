@@ -13,46 +13,29 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+<style>
 body { font-family: 'Inter', sans-serif; }
-
-/* 🔥 MOBILE FIRST RESPONSIVE CALENDAR */
 .fc {
   --fc-border-color: #e2e8f0;
   --fc-daygrid-event-border-color: #e2e8f0;
   background: #ffffff;
   border-radius: 16px;
-  padding: 16px;
+  padding: 24px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  margin: 8px;
+  margin: 0 24px;
 }
-
-/* 🔥 RESPONSIVE PADDING */
-@media (min-width: 640px) { .fc { padding: 20px; margin: 16px; } }
-@media (min-width: 768px) { .fc { padding: 24px; margin: 24px; } }
-
-.fc-toolbar { margin-bottom: 20px; }
-.fc-toolbar-title { 
-  font-size: 20px; 
-  font-weight: 700; 
-  color: #1e293b; 
-}
-@media (min-width: 768px) { .fc-toolbar-title { font-size: 24px; } }
-
+.fc-toolbar { margin-bottom: 28px; }
+.fc-toolbar-title { font-size: 24px; font-weight: 700; color: #1e293b; }
 .fc-button {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   color: #64748b;
   border-radius: 10px;
-  padding: 8px 14px;
+  padding: 10px 18px;
   font-weight: 500;
-  font-size: 13px;
+  font-size: 14px;
   transition: all 0.3s ease;
-  min-height: 36px;
 }
-@media (min-width: 768px) { 
-  .fc-button { padding: 10px 18px; font-size: 14px; } 
-}
-
 .fc-button:hover { background: #f1f5f9; transform: translateY(-1px); }
 .fc-button-primary {
   background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
@@ -64,54 +47,38 @@ body { font-family: 'Inter', sans-serif; }
   background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
   transform: translateY(-2px);
 }
-
-/* 🔥 NAV BUTTONS */
 .fc-prev-button, .fc-next-button, .fc-today-button, .fc-button-group .fc-button {
   background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%) !important;
   border-color: #14b8a6 !important;
   color: white !important;
   box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3) !important;
-  min-height: 36px !important;
 }
 .fc-prev-button:hover, .fc-next-button:hover, .fc-today-button:hover, .fc-button-group .fc-button:hover {
   background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important;
   transform: translateY(-2px) !important;
 }
-
-/* 🔥 RESPONSIVE DAY CELLS */
 .fc-daygrid-day {
   border: 1px solid #f1f5f9;
-  border-radius: 10px;
-  margin: 1px;
+  border-radius: 12px;
+  margin: 2px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: visible;
-  padding-bottom: 6px;
-  height: 72px; /* Fixed height for mobile */
-  display: flex;
-  flex-direction: column;
+  padding-bottom: 8px;
 }
-@media (min-width: 640px) { .fc-daygrid-day { height: 80px; margin: 2px; } }
-@media (min-width: 768px) { .fc-daygrid-day { height: 90px; } }
-
 .fc-daygrid-day:hover {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
-
 .fc-daygrid-day-top {
   font-weight: 600;
   color: #64748b;
-  font-size: 12px;
-  padding: 6px 4px 2px;
+  font-size: 14px;
+  padding: 8px;
   position: relative;
   z-index: 2;
-  flex-shrink: 0;
 }
-@media (min-width: 640px) { .fc-daygrid-day-top { font-size: 13px; padding: 8px; } }
-@media (min-width: 768px) { .fc-daygrid-day-top { font-size: 14px; } }
-
 .fc-daygrid-day-future .fc-daygrid-day-top {
   font-weight: 700;
   color: #475569;
@@ -122,18 +89,17 @@ body { font-family: 'Inter', sans-serif; }
   bottom: 2px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: #10b981;
   pointer-events: none;
   z-index: 3;
   line-height: 1;
 }
-
 .fc-day-today {
   background: transparent !important;
   position: relative;
-  border-radius: 10px !important;
+  border-radius: 12px !important;
 }
 .fc-day-today .fc-daygrid-day-number {
   position: relative;
@@ -141,32 +107,25 @@ body { font-family: 'Inter', sans-serif; }
   background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
   color: white !important;
   font-weight: 700 !important;
-  font-size: 12px !important;
+  font-size: 13px !important;
   border-radius: 50%;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 2px auto 0;
+  margin: 4px auto 0;
   box-shadow: 0 4px 12px rgba(20, 184, 166, 0.4);
 }
-@media (min-width: 640px) { 
-  .fc-day-today .fc-daygrid-day-number { 
-    width: 32px; 
-    height: 32px; 
-    font-size: 13px !important; 
-  } 
-}
 
-/* 🔥 FIXED RED DOT - MOBILE SAFE */
+/* 🔥 FIXED RED DOT - NEVER COVERS DATE NUMBER */
 .has-events .fc-daygrid-day-top::after {
   content: '';
   position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 10px;
-  height: 10px;
+  top: 6px;
+  right: 6px;
+  width: 12px;
+  height: 12px;
   background: linear-gradient(135deg, #ef4444, #dc2626);
   border: 2px solid #ffffff;
   border-radius: 50%;
@@ -177,10 +136,10 @@ body { font-family: 'Inter', sans-serif; }
 }
 
 .has-multiple-events .fc-daygrid-day-top::after {
-  width: 14px !important;
-  height: 14px !important;
-  top: 2px !important;
-  right: 2px !important;
+  width: 16px !important;
+  height: 16px !important;
+  top: 4px !important;
+  right: 4px !important;
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.6) !important;
 }
 
@@ -190,9 +149,12 @@ body { font-family: 'Inter', sans-serif; }
   100% { box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5); }
 }
 
-.fc-daygrid-event { display: none !important; }
+/* 🔥 HIDE ALL EVENTS - ONLY SHOW RED DOT */
+.fc-daygrid-event {
+  display: none !important;
+}
 
-/* 🔥 PERFECT MOBILE MODAL */
+/* 🔥 MODAL STYLES */
 .booking-modal {
   display: none;
   position: fixed;
@@ -201,100 +163,61 @@ body { font-family: 'Inter', sans-serif; }
   width: 100%;
   height: 100%;
   background: rgba(0,0,0,0.5);
-  z-index: 10000; /* Higher z-index */
+  z-index: 1000;
   backdrop-filter: blur(4px);
 }
-
 .modal-content {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background: white;
-  border-radius: 0;
-  max-width: none;
+  border-radius: 20px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
   overflow-y: auto;
-  animation: modalSlideUp 0.3s ease-out;
-  display: flex;
-  flex-direction: column;
+  box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+  animation: modalSlideIn 0.3s ease-out;
 }
-
-@media (min-width: 640px) {
-  .modal-content {
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    border-radius: 20px;
-    max-width: 500px;
-    width: 90%;
-    max-height: 80vh;
-    height: auto;
-  }
+@keyframes modalSlideIn {
+  from { opacity: 0; transform: translate(-50%, -60%); }
+  to { opacity: 1; transform: translate(-50%, -50%); }
 }
-
-@keyframes modalSlideUp {
-  from { opacity: 0; transform: translateY(100%); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 .modal-header {
-  padding: 20px 20px 0;
+  padding: 24px 24px 0;
   border-bottom: 1px solid #f1f5f9;
-  position: sticky;
-  top: 0;
-  background: white;
-  z-index: 10;
 }
-@media (min-width: 640px) { .modal-header { padding: 24px 24px 0; } }
-
 .modal-title {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 700;
   color: #1e293b;
   margin: 0;
 }
-@media (min-width: 640px) { .modal-title { font-size: 24px; } }
-
 .close-btn {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  font-size: 20px;
+  top: 20px;
+  right: 24px;
+  background: none;
+  border: none;
+  font-size: 28px;
   cursor: pointer;
   color: #64748b;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 12px;
   transition: all 0.2s;
 }
-@media (min-width: 640px) { 
-  .close-btn { 
-    top: 20px; 
-    right: 24px; 
-    width: 40px; 
-    height: 40px; 
-    font-size: 28px; 
-  } 
-}
-
 .close-btn:hover {
   background: #f1f5f9;
   color: #1e293b;
-  transform: scale(1.1);
 }
-
 .modal-body {
-  padding: 20px;
-  flex: 1;
+  padding: 24px;
 }
-@media (min-width: 640px) { .modal-body { padding: 24px; } }
-
 .event-item {
   background: linear-gradient(135deg, #fef2f2 0%, #fde8e8 100%);
   border: 1px solid #fecaca;
@@ -307,7 +230,6 @@ body { font-family: 'Inter', sans-serif; }
   transform: translateY(-1px);
   box-shadow: 0 8px 25px rgba(239, 68, 68, 0.15);
 }
-
 .event-time {
   font-size: 18px;
   font-weight: 700;
@@ -327,7 +249,6 @@ body { font-family: 'Inter', sans-serif; }
   align-items: center;
   gap: 6px;
 }
-
 .no-events {
   text-align: center;
   padding: 40px 20px;
@@ -339,31 +260,6 @@ body { font-family: 'Inter', sans-serif; }
   margin-bottom: 16px;
   opacity: 0.5;
 }
-
-/* 🔥 PERFECT GREEN BUTTON */
-.book-now-btn {
-  width: 100%;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  border: none;
-  padding: 16px 20px;
-  border-radius: 14px;
-  font-size: 16px;
-  font-weight: 700;
-  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 20px;
-}
-.book-now-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 35px rgba(16, 185, 129, 0.5);
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-}
-@media (hover: none) { .book-now-btn:hover { transform: none; } }
 </style>
 </head>
 
