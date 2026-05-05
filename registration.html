@@ -61,6 +61,36 @@
       padding: 4px;
       border-radius: 8px;
     }
+    
+    /* 🔥 BEAUTIFUL GLASSMORPHISM MODAL */
+    .success-modal {
+      backdrop-filter: blur(20px);
+      background: rgba(255, 255, 255, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
+    }
+    .success-modal::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(20, 184, 166, 0.1));
+      border-radius: inherit;
+      z-index: -1;
+    }
+    .modal-overlay {
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    .floating-icon {
+      animation: float 3s ease-in-out infinite;
+    }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -248,7 +278,41 @@
     </div>
   </footer>
 
-  <!-- 🔥 FINAL FIREBASE SCRIPT WITH TIME LIMITS -->
+  <!-- 🔥 BEAUTIFUL GLASSMORPHISM SUCCESS MODAL -->
+  <div id="successModal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center p-4">
+    <div class="modal-overlay fixed inset-0" onclick="closeSuccessModal()"></div>
+    <div class="success-modal relative max-w-md w-full mx-4 p-8 rounded-3xl text-center transform scale-95 opacity-0 transition-all duration-500 animate-in" style="animation-fill-mode: forwards;">
+      <!-- Floating Check Icon -->
+      <div class="floating-icon mb-6 mx-auto w-24 h-24 bg-gradient-to-r from-green-400 to-teal-500 rounded-3xl flex items-center justify-center shadow-2xl border-4 border-white/30">
+        <svg class="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+        </svg>
+      </div>
+      
+      <h3 class="text-2xl font-bold text-gray-900 mb-3">Booking Confirmed!</h3>
+      <p class="text-gray-600 mb-8 text-lg leading-relaxed" id="modalMessage"></p>
+      
+      <div class="grid grid-cols-2 gap-4 mb-8 p-4 bg-white/50 backdrop-blur-sm rounded-2xl border border-white/30">
+        <div class="text-left">
+          <div class="text-xs text-green-600 font-semibold uppercase tracking-wide mb-1">Event</div>
+          <div id="modalEvent" class="font-bold text-gray-900 text-sm"></div>
+        </div>
+        <div class="text-left">
+          <div class="text-xs text-green-600 font-semibold uppercase tracking-wide mb-1">Hall</div>
+          <div id="modalHall" class="font-bold text-gray-900 text-sm"></div>
+        </div>
+      </div>
+      
+      <button onclick="closeSuccessModal()" class="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white px-8 py-4 rounded-2xl font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 w-full">
+        <span>View Calendar</span>
+        <svg class="inline ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- 🔥 FINAL FIREBASE SCRIPT WITH TIME LIMITS & GLASS MODAL -->
   <script type="module">
     // Firebase imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -335,6 +399,40 @@
     startTimeInput.addEventListener('blur', validateTimes);
     endTimeInput.addEventListener('blur', validateTimes);
 
+    // 🔥 GLASSMORPHISM MODAL FUNCTIONS
+    function showSuccessModal(eventName, hallName, selectedDate, startTime, endTime, fullName) {
+      document.getElementById('modalMessage').textContent = `Your booking for ${eventName} has been successfully confirmed!`;
+      document.getElementById('modalEvent').textContent = eventName;
+      document.getElementById('modalHall').textContent = hallName;
+      
+      const modal = document.getElementById('successModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      
+      // Trigger animation
+      setTimeout(() => {
+        modal.querySelector('.success-modal').style.transform = 'scale(1)';
+        modal.querySelector('.success-modal').style.opacity = '1';
+      }, 10);
+    }
+
+    function closeSuccessModal() {
+      const modal = document.getElementById('successModal');
+      const modalContent = modal.querySelector('.success-modal');
+      
+      modalContent.style.transform = 'scale(0.95)';
+      modalContent.style.opacity = '0';
+      
+      setTimeout(() => {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+        
+        // 🔥 REDIRECT TO ST.ANNS CALENDAR WITH HALL PARAMETER
+        const calendarUrl = `calendar.html?hall=${encodeURIComponent(hallName)}#${formattedDate}`;
+        window.location.href = calendarUrl;
+      }, 300);
+    }
+
     // Form submission
     document.getElementById('bookingForm').addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -372,18 +470,21 @@
         // Save to Firebase
         await addDoc(collection(db, "bookings"), data);
         
-        // Success!
-        alert(`✅ ${data.eventName} confirmed!\n\n📅 ${selectedDate}\n🕐 ${data.startTime} - ${data.endTime}\n🏛️ ${hallName}\n👤 ${data.fullName}\n\n🔄 Returning to calendar...`);
-        
-        // 🔥 REDIRECT TO ST.ANNS CALENDAR WITH HALL PARAMETER
-        const calendarUrl = `calendar.html?hall=${encodeURIComponent(hallName)}#${formattedDate}`;
-        window.location.href = calendarUrl;
+        // 🔥 SHOW BEAUTIFUL GLASS MODAL INSTEAD OF ALERT
+        showSuccessModal(
+          data.eventName,
+          hallName,
+          selectedDate,
+          data.startTime,
+          data.endTime,
+          data.fullName
+        );
         
       } catch (error) {
         console.error('❌ Firebase Error:', error);
         alert('❌ Booking failed. Please try again.\n\n' + error.message);
       } finally {
-        // Reset button
+        // Reset button (only if error)
         bookBtn.innerHTML = originalText;
         bookBtn.disabled = false;
       }
