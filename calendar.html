@@ -131,7 +131,6 @@ body { font-family: 'Inter', sans-serif; }
   box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
   z-index: 15;
   animation: pulse 2s infinite;
-  pointer-events: auto; /* 🔥 Make clickable */
 }
 
 .has-multiple-events .fc-daygrid-day-top::after {
@@ -328,7 +327,7 @@ body { font-family: 'Inter', sans-serif; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebase/js/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA1VE0YP88fk7tJ-NynBt_A0dNnoMyVi44",
@@ -344,8 +343,7 @@ const db = getFirestore(app);
 
 let hallNameGlobal;
 let calendar;
-let isModalOpen = false; // 🔥 Track modal state
-let eventListenersAttached = false; // 🔥 Prevent duplicate listeners
+let isModalOpen = false;
 
 document.addEventListener('DOMContentLoaded', function () {
   const urlParams = new URLSearchParams(window.location.search);
@@ -376,6 +374,7 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('hallTitle').textContent = `${config.emoji} ${hallNameGlobal}`;
   document.getElementById('hallInfo').textContent = `Capacity: ${config.capacity} • Click FREE dates to book | Click 🔴 RED DOT for event details`;
 
+  // 🔥 CALENDAR INITIALIZATION - GUARANTEED TO WORK
   const calendarEl = document.getElementById('calendar');
   
   calendar = new FullCalendar.Calendar(calendarEl, {
@@ -390,8 +389,7 @@ document.addEventListener('DOMContentLoaded', function () {
     dayMaxEvents: 0,
     dayPopoverFormat: { month: 'long', day: 'numeric', year: 'numeric' },
     dateClick: function(info) {
-      // 🔥 Only allow date clicks when modal is NOT open
-      if (isModalOpen) return;
+      if (isModalOpen) return; // 🔥 Block when modal open
       
       const today = new Date();
       today.setHours(0,0,0,0);
@@ -411,9 +409,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  calendar.render();
+  calendar.render(); // 🔥 RENDER CALENDAR FIRST
 
-  // 🔥 ULTRA STABLE EVENT LOADING - NO RECREATING LISTENERS
+  // 🔥 STABLE EVENT LOADING
   const q = query(collection(db, "bookings"), where("hall", "==", hallNameGlobal));
   
   onSnapshot(q, (snapshot) => {
@@ -439,66 +437,63 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     });
 
-    // 🔥 ONLY UPDATE INDICATORS IF MODAL IS NOT OPEN
+    // 🔥 UPDATE INDICATORS ONLY WHEN MODAL CLOSED
     if (!isModalOpen) {
       updateDayIndicators();
     }
   });
 
-  // 🔥 ULTRA STABLE INDICATOR UPDATES - NO RECREATING LISTENERS
+  // 🔥 ULTRA STABLE RED DOT FUNCTIONALITY
   function updateDayIndicators() {
-    document.querySelectorAll('.fc-daygrid-day').forEach(dayEl => {
+    setTimeout(() => { // 🔥 Ensure DOM is ready
+      document.querySelectorAll('.fc-daygrid-day').forEach(dayEl => {
+        const dateStr = dayEl.getAttribute('data-date');
+        if (!dateStr) return;
+        
+        const events = calendar.getEvents().filter(e => 
+          new Date(e.start).toDateString() === new Date(dateStr).toDateString()
+        );
+        
+        dayEl.classList.remove('has-events', 'has-multiple-events');
+        
+        if (events.length > 0) {
+          dayEl.classList.add('has-events');
+          if (events.length > 1) {
+            dayEl.classList.add('has-multiple-events');
+          }
+        }
+      });
+    }, 100);
+  }
+
+  // 🔥 SINGLE EVENT DELEGATION - SUPER STABLE
+  document.addEventListener('click', function(e) {
+    if (isModalOpen) return; // 🔥 Block all clicks when modal open
+    
+    const dayTop = e.target.closest('.fc-daygrid-day-top');
+    const dayEl = e.target.closest('.fc-daygrid-day');
+    
+    if (dayEl && dayEl.classList.contains('has-events') && dayTop) {
+      e.preventDefault();
+      e.stopPropagation();
+      
       const dateStr = dayEl.getAttribute('data-date');
       const events = calendar.getEvents().filter(e => 
         new Date(e.start).toDateString() === new Date(dateStr).toDateString()
       );
       
-      // Remove old classes
-      dayEl.classList.remove('has-events', 'has-multiple-events');
-      
-      if (events.length > 0) {
-        dayEl.classList.add('has-events');
-        if (events.length > 1) {
-          dayEl.classList.add('has-multiple-events');
-        }
-      }
-    });
-
-    // 🔥 ATTACH LISTENERS ONLY ONCE OR WHEN MODAL CLOSES
-    if (!eventListenersAttached && !isModalOpen) {
-      attachRedDotListeners();
-      eventListenersAttached = true;
+      showEventsModal(dateStr, events);
     }
-  }
+  });
 
-  // 🔥 SINGLE STABLE CLICK HANDLER ATTACHMENT
-  function attachRedDotListeners() {
-    // 🔥 Use event delegation - ULTRA STABLE
-    document.addEventListener('click', function(e) {
-      if (e.target.matches('.has-events .fc-daygrid-day-top::after') || 
-          e.target.closest('.has-events .fc-daygrid-day-top')) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        const dayEl = e.target.closest('.fc-daygrid-day');
-        const dateStr = dayEl.getAttribute('data-date');
-        const events = calendar.getEvents().filter(e => 
-          new Date(e.start).toDateString() === new Date(dateStr).toDateString()
-        );
-        
-        showEventsModal(dateStr, events);
-      }
-    });
-  }
-
-  // 🔥 MODAL SETUP
+  // 🔥 MODAL FUNCTIONS
   const modal = document.getElementById('eventsModal');
   const closeBtn = document.getElementById('closeModal');
   const modalTitle = document.getElementById('modalDateTitle');
   const modalBody = document.getElementById('modalBody');
 
   function showEventsModal(dateStr, events) {
-    isModalOpen = true; // 🔥 Block all other interactions
+    isModalOpen = true;
     
     const date = new Date(dateStr);
     modalTitle.textContent = date.toLocaleDateString('en-US', {
@@ -526,85 +521,72 @@ document.addEventListener('DOMContentLoaded', function () {
       `;
     } else {
       const hasFreeSlots = events.length < 3;
-      modalBody.innerHTML = `
-        ${events.map(event => {
-          const startTime = formatTime(event.extendedProps.startTime);
-          const endTime = formatTime(event.extendedProps.endTime);
-          const timeRange = endTime ? `${startTime} - ${endTime}` : startTime;
-          
-          return `
-            <div class="event-item">
-              <div class="event-time">${timeRange}</div>
-              <h3 class="event-name">${event.title}</h3>
-              <div class="event-status">
-                <span class="w-2 h-2 bg-red-500 rounded-full"></span>
-                Booked
-              </div>
+      modalBody.innerHTML = events.map(event => {
+        const startTime = formatTime(event.extendedProps.startTime);
+        const endTime = formatTime(event.extendedProps.endTime);
+        const timeRange = endTime ? `${startTime} - ${endTime}` : startTime;
+        
+        return `
+          <div class="event-item">
+            <div class="event-time">${timeRange}</div>
+            <h3 class="event-name">${event.title}</h3>
+            <div class="event-status">
+              <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+              Booked
             </div>
-          `;
-        }).join('')}
-        ${hasFreeSlots ? `
-          <div class="mt-6 pt-6 border-t border-gray-100">
-            <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-              Free slots available
-            </h4>
-            <button onclick="bookNow('${dateStr}')" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-6 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-2">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-              </svg>
-              Book Available Slot
-            </button>
           </div>
-        ` : ''}
-      `;
+        `;
+      }).join('') + (hasFreeSlots ? `
+        <div class="mt-6 pt-6 border-t border-gray-100">
+          <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+            Free slots available
+          </h4>
+          <button onclick="bookNow('${dateStr}')" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-6 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            Book Available Slot
+          </button>
+        </div>
+      ` : '');
+
     }
 
     modal.style.display = 'block';
     document.body.style.overflow = 'hidden';
   }
 
-  // 🔥 GLOBAL BOOK NOW FUNCTION
   window.bookNow = function(dateStr) {
     const formattedDate = dateStr.replace(/-/g, '/');
-    closeModal(); // 🔥 Close first, then navigate
+    closeModal();
     setTimeout(() => {
       window.location.href = `registration.html?hall=${encodeURIComponent(hallNameGlobal)}&date=${formattedDate}`;
-    }, 300); // Small delay for smooth UX
+    }, 300);
   };
 
   function formatTime(timeStr) {
     if (!timeStr || timeStr.includes('AM') || timeStr.includes('PM')) return timeStr;
-    
     try {
       const [hours, minutes] = timeStr.split(':');
       const date = new Date();
       date.setHours(parseInt(hours), parseInt(minutes) || 0, 0, 0);
-      return date.toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit', 
-        hour12: true 
-      });
+      return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
     } catch(e) {
       return timeStr;
     }
   }
 
-  // 🔥 STABLE MODAL CLOSE HANDLERS
   function closeModal() {
     modal.style.display = 'none';
     document.body.style.overflow = 'auto';
-    isModalOpen = false; // 🔥 Re-enable interactions
-    eventListenersAttached = false; // 🔥 Allow re-attachment
-    updateDayIndicators(); // 🔥 Safely refresh indicators
+    isModalOpen = false;
+    updateDayIndicators();
   }
 
   closeBtn.onclick = closeModal;
+  modal.onclick = (event) => { if (event.target === modal) closeModal(); };
   
-  modal.onclick = (event) => {
-    if (event.target === modal) closeModal();
-  };
-
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && modal.style.display === 'block') {
       closeModal();
