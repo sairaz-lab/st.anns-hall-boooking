@@ -13,7 +13,6 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-<style>
 body { font-family: 'Inter', sans-serif; }
 .fc {
   --fc-border-color: #e2e8f0;
@@ -118,7 +117,7 @@ body { font-family: 'Inter', sans-serif; }
   box-shadow: 0 4px 12px rgba(20, 184, 166, 0.4);
 }
 
-/* 🔥 FIXED RED DOT - NEVER COVERS DATE NUMBER */
+/* 🔥 FIXED RED DOT - ULTRA STABLE */
 .has-events .fc-daygrid-day-top::after {
   content: '';
   position: absolute;
@@ -132,7 +131,7 @@ body { font-family: 'Inter', sans-serif; }
   box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
   z-index: 15;
   animation: pulse 2s infinite;
-  cursor: pointer;
+  pointer-events: auto; /* 🔥 Make clickable */
 }
 
 .has-multiple-events .fc-daygrid-day-top::after {
@@ -329,7 +328,7 @@ body { font-family: 'Inter', sans-serif; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebase/js/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA1VE0YP88fk7tJ-NynBt_A0dNnoMyVi44",
@@ -345,7 +344,8 @@ const db = getFirestore(app);
 
 let hallNameGlobal;
 let calendar;
-let currentOpenModalDate = null; // 🔥 Track open modal to prevent conflicts
+let isModalOpen = false; // 🔥 Track modal state
+let eventListenersAttached = false; // 🔥 Prevent duplicate listeners
 
 document.addEventListener('DOMContentLoaded', function () {
   const urlParams = new URLSearchParams(window.location.search);
@@ -390,6 +390,9 @@ document.addEventListener('DOMContentLoaded', function () {
     dayMaxEvents: 0,
     dayPopoverFormat: { month: 'long', day: 'numeric', year: 'numeric' },
     dateClick: function(info) {
+      // 🔥 Only allow date clicks when modal is NOT open
+      if (isModalOpen) return;
+      
       const today = new Date();
       today.setHours(0,0,0,0);
       const clickedDate = new Date(info.dateStr);
@@ -410,7 +413,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   calendar.render();
 
-  // 🔥 LOAD EVENTS & ADD RED DOTS (STABLE VERSION)
+  // 🔥 ULTRA STABLE EVENT LOADING - NO RECREATING LISTENERS
   const q = query(collection(db, "bookings"), where("hall", "==", hallNameGlobal));
   
   onSnapshot(q, (snapshot) => {
@@ -436,12 +439,14 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     });
 
-    // 🔥 ONLY UPDATE INDICATORS, DON'T TOUCH EXISTING MODAL
-    updateDayIndicators(calendar);
+    // 🔥 ONLY UPDATE INDICATORS IF MODAL IS NOT OPEN
+    if (!isModalOpen) {
+      updateDayIndicators();
+    }
   });
 
-  // 🔥 FIXED: SEPARATE INDICATOR UPDATES FROM CLICK HANDLERS
-  function updateDayIndicators(calendar) {
+  // 🔥 ULTRA STABLE INDICATOR UPDATES - NO RECREATING LISTENERS
+  function updateDayIndicators() {
     document.querySelectorAll('.fc-daygrid-day').forEach(dayEl => {
       const dateStr = dayEl.getAttribute('data-date');
       const events = calendar.getEvents().filter(e => 
@@ -459,24 +464,31 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
 
-    // 🔥 RE-ATTACH CLICK HANDLERS ONLY TO DAYS WITH EVENTS (STABLE)
-    document.querySelectorAll('.fc-daygrid-day.has-events .fc-daygrid-day-top').forEach(topEl => {
-      // Prevent duplicate handlers
-      topEl.removeEventListener('click', handleRedDotClick);
-      topEl.addEventListener('click', handleRedDotClick);
-    });
+    // 🔥 ATTACH LISTENERS ONLY ONCE OR WHEN MODAL CLOSES
+    if (!eventListenersAttached && !isModalOpen) {
+      attachRedDotListeners();
+      eventListenersAttached = true;
+    }
   }
 
-  // 🔥 STABLE CLICK HANDLER (STORED SEPARATELY)
-  function handleRedDotClick(e) {
-    e.stopPropagation();
-    const dayEl = e.currentTarget.closest('.fc-daygrid-day');
-    const dateStr = dayEl.getAttribute('data-date');
-    const events = calendar.getEvents().filter(e => 
-      new Date(e.start).toDateString() === new Date(dateStr).toDateString()
-    );
-    
-    showEventsModal(dateStr, events);
+  // 🔥 SINGLE STABLE CLICK HANDLER ATTACHMENT
+  function attachRedDotListeners() {
+    // 🔥 Use event delegation - ULTRA STABLE
+    document.addEventListener('click', function(e) {
+      if (e.target.matches('.has-events .fc-daygrid-day-top::after') || 
+          e.target.closest('.has-events .fc-daygrid-day-top')) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const dayEl = e.target.closest('.fc-daygrid-day');
+        const dateStr = dayEl.getAttribute('data-date');
+        const events = calendar.getEvents().filter(e => 
+          new Date(e.start).toDateString() === new Date(dateStr).toDateString()
+        );
+        
+        showEventsModal(dateStr, events);
+      }
+    });
   }
 
   // 🔥 MODAL SETUP
@@ -486,7 +498,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const modalBody = document.getElementById('modalBody');
 
   function showEventsModal(dateStr, events) {
-    currentOpenModalDate = dateStr; // Track open modal
+    isModalOpen = true; // 🔥 Block all other interactions
     
     const date = new Date(dateStr);
     modalTitle.textContent = date.toLocaleDateString('en-US', {
@@ -513,7 +525,7 @@ document.addEventListener('DOMContentLoaded', function () {
         </div>
       `;
     } else {
-      const hasFreeSlots = events.length < 3; // Assume 24hr day, 8hr slots max
+      const hasFreeSlots = events.length < 3;
       modalBody.innerHTML = `
         ${events.map(event => {
           const startTime = formatTime(event.extendedProps.startTime);
@@ -549,15 +561,16 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     modal.style.display = 'block';
-    document.body.style.overflow = 'hidden'; // Prevent background scroll
+    document.body.style.overflow = 'hidden';
   }
 
   // 🔥 GLOBAL BOOK NOW FUNCTION
   window.bookNow = function(dateStr) {
     const formattedDate = dateStr.replace(/-/g, '/');
-    modal.style.display = 'none';
-    document.body.style.overflow = 'auto';
-    window.location.href = `registration.html?hall=${encodeURIComponent(hallNameGlobal)}&date=${formattedDate}`;
+    closeModal(); // 🔥 Close first, then navigate
+    setTimeout(() => {
+      window.location.href = `registration.html?hall=${encodeURIComponent(hallNameGlobal)}&date=${formattedDate}`;
+    }, 300); // Small delay for smooth UX
   };
 
   function formatTime(timeStr) {
@@ -577,9 +590,18 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // 🔥 MODAL CLOSE HANDLERS (STABLE)
-  closeBtn.onclick = () => closeModal();
-  window.onclick = (event) => {
+  // 🔥 STABLE MODAL CLOSE HANDLERS
+  function closeModal() {
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+    isModalOpen = false; // 🔥 Re-enable interactions
+    eventListenersAttached = false; // 🔥 Allow re-attachment
+    updateDayIndicators(); // 🔥 Safely refresh indicators
+  }
+
+  closeBtn.onclick = closeModal;
+  
+  modal.onclick = (event) => {
     if (event.target === modal) closeModal();
   };
 
@@ -588,12 +610,6 @@ document.addEventListener('DOMContentLoaded', function () {
       closeModal();
     }
   });
-
-  function closeModal() {
-    modal.style.display = 'none';
-    document.body.style.overflow = 'auto';
-    currentOpenModalDate = null;
-  }
 });
 </script>
 </body>
