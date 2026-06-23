@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>St.Anns Halls Calendar</title>
-<!-- 🔥 LOGO & FAVICON -->
 <link rel="icon" type="image/png" href="https://ik.imagekit.io/syustaging/SYU_PREPROD/LOGO_Zd7PFpkXn.webp?tr=w-3840">
 <link rel="apple-touch-icon" href="https://ik.imagekit.io/syustaging/SYU_PREPROD/LOGO_Zd7PFpkXn.webp?tr=w-3840">
 <link rel="shortcut icon" href="https://ik.imagekit.io/syustaging/SYU_PREPROD/LOGO_Zd7PFpkXn.webp?tr=w-3840">
@@ -262,7 +261,6 @@ body { font-family: 'Inter', sans-serif; }
 </head>
 
 <body class="bg-gray-50">
-<!-- HEADER -->
 <header class="bg-white border-b px-6 py-4 flex justify-between items-center sticky top-0 z-50 shadow-sm">
   <a href="index.html#home" class="flex items-center gap-3 hover:scale-105 transition-transform">
     <img src="https://ik.imagekit.io/syustaging/SYU_PREPROD/LOGO_Zd7PFpkXn.webp?tr=w-3840" 
@@ -277,7 +275,6 @@ body { font-family: 'Inter', sans-serif; }
   </nav>
 </header>
 
-<!-- MAIN CONTENT -->
 <div class="w-full">
   <div class="bg-white px-8 py-6 border-b">
     <a href="index.html#availability" class="text-sm text-green-600 hover:text-green-700 font-medium mb-2 inline-block transition-colors flex items-center gap-1">
@@ -296,7 +293,6 @@ body { font-family: 'Inter', sans-serif; }
   </div>
 </div>
 
-<!-- 🔥 EVENTS MODAL -->
 <div id="eventsModal" class="booking-modal">
   <div class="modal-content">
     <div class="modal-header">
@@ -304,12 +300,10 @@ body { font-family: 'Inter', sans-serif; }
       <button class="close-btn" id="closeModal">&times;</button>
     </div>
     <div class="modal-body" id="modalBody">
-      <!-- Events will be populated here -->
-    </div>
+      </div>
   </div>
 </div>
 
-<!-- FOOTER -->
 <footer class="bg-gradient-to-r from-green-500 to-teal-500 text-white text-center py-8 mt-20">
     <div class="max-w-4xl mx-auto px-4">
       <div class="flex justify-center items-center gap-3 mb-4">
@@ -327,7 +321,7 @@ body { font-family: 'Inter', sans-serif; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, query, where, onSnapshot, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA1VE0YP88fk7tJ-NynBt_A0dNnoMyVi44",
@@ -374,7 +368,7 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('hallTitle').textContent = `${config.emoji} ${hallNameGlobal}`;
   document.getElementById('hallInfo').textContent = `Capacity: ${config.capacity} • Click FREE dates to book | Click 🔴 RED DOT for event details`;
 
-  // 🔥 CALENDAR INITIALIZATION - GUARANTEED TO WORK
+  // 🔥 CALENDAR INITIALIZATION
   const calendarEl = document.getElementById('calendar');
   
   calendar = new FullCalendar.Calendar(calendarEl, {
@@ -389,7 +383,7 @@ document.addEventListener('DOMContentLoaded', function () {
     dayMaxEvents: 0,
     dayPopoverFormat: { month: 'long', day: 'numeric', year: 'numeric' },
     dateClick: function(info) {
-      if (isModalOpen) return; // 🔥 Block when modal open
+      if (isModalOpen) return; 
       
       const today = new Date();
       today.setHours(0,0,0,0);
@@ -409,7 +403,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  calendar.render(); // 🔥 RENDER CALENDAR FIRST
+  calendar.render();
 
   // 🔥 STABLE EVENT LOADING
   const q = query(collection(db, "bookings"), where("hall", "==", hallNameGlobal));
@@ -437,15 +431,14 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     });
 
-    // 🔥 UPDATE INDICATORS ONLY WHEN MODAL CLOSED
     if (!isModalOpen) {
       updateDayIndicators();
     }
   });
 
-  // 🔥 ULTRA STABLE RED DOT FUNCTIONALITY
+  // 🔥 RED DOT INDICATORS
   function updateDayIndicators() {
-    setTimeout(() => { // 🔥 Ensure DOM is ready
+    setTimeout(() => { 
       document.querySelectorAll('.fc-daygrid-day').forEach(dayEl => {
         const dateStr = dayEl.getAttribute('data-date');
         if (!dateStr) return;
@@ -466,9 +459,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }, 100);
   }
 
-  // 🔥 SINGLE EVENT DELEGATION - SUPER STABLE
+  // 🔥 CLICK EVENT DELEGATION
   document.addEventListener('click', function(e) {
-    if (isModalOpen) return; // 🔥 Block all clicks when modal open
+    if (isModalOpen) return; 
     
     const dayTop = e.target.closest('.fc-daygrid-day-top');
     const dayEl = e.target.closest('.fc-daygrid-day');
@@ -486,12 +479,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  // 🔥 MODAL FUNCTIONS
+  // 🔥 MODAL DOM REFERENCES
   const modal = document.getElementById('eventsModal');
   const closeBtn = document.getElementById('closeModal');
   const modalTitle = document.getElementById('modalDateTitle');
   const modalBody = document.getElementById('modalBody');
 
+  // 🔥 WORKING DYNAMIC TIME HOURLY BLOCK VALIDATION (9am - 3pm) WITH ADMIN BANNER
   function showEventsModal(dateStr, events) {
     isModalOpen = true;
     
@@ -520,37 +514,106 @@ document.addEventListener('DOMContentLoaded', function () {
         </div>
       `;
     } else {
-      const hasFreeSlots = events.length < 3;
-      modalBody.innerHTML = events.map(event => {
+      const DAY_START = 9 * 60; // 09:00 AM in mins
+      const DAY_END = 15 * 60;  // 03:00 PM in mins
+      let totalBookedMinutes = 0;
+
+      function parseTimeToMinutes(timeStr) {
+        if (!timeStr) return null;
+        let hours, minutes;
+        
+        if (timeStr.includes('AM') || timeStr.includes('PM')) {
+          const [time, modifier] = timeStr.split(' ');
+          let [h, m] = time.split(':');
+          hours = parseInt(h, 10);
+          minutes = parseInt(m, 10) || 0;
+          if (modifier === 'PM' && hours < 12) hours += 12;
+          if (modifier === 'AM' && hours === 12) hours = 0;
+        } else {
+          const parts = timeStr.split(':');
+          hours = parseInt(parts[0], 10);
+          minutes = parseInt(parts[1], 10) || 0;
+        }
+        return (hours * 60) + minutes;
+      }
+
+      events.forEach(event => {
+        let startMin = parseTimeToMinutes(event.extendedProps.startTime);
+        let endMin = parseTimeToMinutes(event.extendedProps.endTime);
+
+        if (startMin === null) return;
+        if (endMin === null || endMin <= startMin) endMin = startMin + 60;
+
+        const overlapStart = Math.max(startMin, DAY_START);
+        const overlapEnd = Math.min(endMin, DAY_END);
+
+        if (overlapEnd > overlapStart) {
+          totalBookedMinutes += (overlapEnd - overlapStart);
+        }
+      });
+
+      const isFullyBooked = totalBookedMinutes >= 360; // 6 hours total operational window
+
+      let htmlContent = events.map(event => {
         const startTime = formatTime(event.extendedProps.startTime);
         const endTime = formatTime(event.extendedProps.endTime);
         const timeRange = endTime ? `${startTime} - ${endTime}` : startTime;
         
         return `
-          <div class="event-item">
-            <div class="event-time">${timeRange}</div>
-            <h3 class="event-name">${event.title}</h3>
-            <div class="event-status">
-              <span class="w-2 h-2 bg-red-500 rounded-full"></span>
-              Booked
+          <div class="event-item border border-red-100 relative group/item">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="event-time">${timeRange}</div>
+                <h3 class="event-name">${event.title}</h3>
+                <div class="event-status">
+                  <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+                  Booked
+                </div>
+              </div>
             </div>
           </div>
         `;
-      }).join('') + (hasFreeSlots ? `
-        <div class="mt-6 pt-6 border-t border-gray-100">
-          <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-            Free slots available
-          </h4>
-          <button onclick="bookNow('${dateStr}')" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-6 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-            </svg>
-            Book Available Slot
-          </button>
-        </div>
-      ` : '');
+      }).join('');
 
+      if (isFullyBooked) {
+        htmlContent += `
+          <div class="mt-4 p-4 bg-red-50 rounded-xl text-center">
+            <h4 class="text-base font-semibold text-red-600 flex items-center justify-center gap-2">
+              <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+              Slots Full
+            </h4>
+            <p class="text-xs text-gray-500 mt-1">All standard operating hours (9:00 AM - 3:00 PM) are fully booked.</p>
+          </div>
+        `;
+      } else {
+        htmlContent += `
+          <div class="mt-4">
+            <button onclick="bookNow('${dateStr}')" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-6 rounded-xl font-semibold text-base shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+              Book Available Slot
+            </button>
+          </div>
+        `;
+      }
+
+      // 🔥 BEAUTIFUL ADMIN SUPPORT NOTICE
+      htmlContent += `
+        <div class="mt-6 pt-5 border-t border-gray-100 flex items-start gap-3 bg-slate-50 p-4 rounded-xl">
+          <span class="text-xl mt-0.5">💡</span>
+          <div class="text-left">
+            <h4 class="text-xs font-bold text-gray-700 uppercase tracking-wider">Need to modify or cancel?</h4>
+            <p class="text-xs text-gray-500 mt-1 leading-relaxed">
+              To request a removal or change an existing reservation, contact hall administration at 
+              <a href="tel:04023513020" class="text-green-600 font-semibold hover:underline">040 - 2351 3020</a> or via email at 
+              <a href="mailto:info@stannscollegehyd.com" class="text-green-600 font-semibold hover:underline">info@stannscollegehyd.com</a>.
+            </p>
+          </div>
+        </div>
+      `;
+
+      modalBody.innerHTML = htmlContent;
     }
 
     modal.style.display = 'block';
