@@ -7,6 +7,7 @@
 <link rel="icon" type="image/png" href="https://ik.imagekit.io/syustaging/SYU_PREPROD/LOGO_Zd7PFpkXn.webp?tr=w-3840">
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
   body { font-family: 'Inter', sans-serif; }
   [v-cloak] { display: none; }
@@ -21,8 +22,13 @@
     <h2 class="text-2xl font-bold text-gray-900">Administrative Gate</h2>
     <p class="text-gray-500 text-sm mt-1 mb-6">Authorized Access Only. Please enter security credential.</p>
     <form id="loginForm">
-      <input type="password" id="adminPass" placeholder="Enter Admin Password" required
-             class="w-full px-4 py-3 rounded-xl border border-gray-200 text-center text-lg focus:outline-none focus:ring-2 focus:ring-green-500 mb-4 tracking-widest">
+      <div class="relative mb-4">
+        <input type="password" id="adminPass" placeholder="Enter Admin Password" required
+               class="w-full pl-12 pr-12 py-3 rounded-xl border border-gray-200 text-center text-lg focus:outline-none focus:ring-2 focus:ring-green-500 tracking-widest">
+        <button type="button" id="passwordToggle" class="absolute right-3 top-1/2 -translate-y-1/2 text-lg focus:outline-none hover:scale-110 transition-transform">
+          👁️
+        </button>
+      </div>
       <button type="submit" class="w-full bg-slate-900 text-white font-semibold py-3 rounded-xl hover:bg-slate-800 transition-colors">
         Unlock Console
       </button>
@@ -40,7 +46,7 @@
     </a>
     <nav class="flex items-center gap-4">
       <a href="index.html#home" class="text-gray-600 hover:text-green-600 font-medium text-sm transition-colors">Live Site</a>
-      <button onclick="handleLogout()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 py-1.5 rounded-lg border transition-colors">Lock 🔓</button>
+      <button id="logoutBtn" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 py-1.5 rounded-lg border transition-colors">Lock 🔓</button>
     </nav>
   </header>
 
@@ -49,14 +55,14 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
       <div>
         <h2 class="text-3xl font-bold text-gray-900">Reservations Ledger</h2>
-        <p class="text-gray-500 text-sm mt-1">Review active events, restore items from the trash bin, or filter by venue setup.</p>
+        <p class="text-gray-500 text-sm mt-1">Review active events, update confirmation statuses, or archive item histories.</p>
       </div>
       <div class="flex gap-3">
         <div class="bg-white px-4 py-2 rounded-xl shadow-sm border flex items-center gap-2">
           <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
           <span class="text-sm font-medium text-gray-600" id="liveCounter">Active: 0</span>
         </div>
-        <button onclick="toggleTrashView()" id="trashBtn" class="bg-white hover:bg-slate-50 text-gray-700 px-4 py-2 rounded-xl shadow-sm border flex items-center gap-2 font-medium text-sm transition-all">
+        <button id="trashBtn" class="bg-white hover:bg-slate-50 text-gray-700 px-4 py-2 rounded-xl shadow-sm border flex items-center gap-2 font-medium text-sm transition-all">
           <span>🗑️ Trash Bin</span>
           <span id="trashCounter" class="bg-gray-200 text-gray-700 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
         </button>
@@ -64,16 +70,16 @@
     </div>
 
     <div id="filterTabsContainer" class="flex flex-wrap gap-2 mb-6">
-      <button onclick="setFilter('all')" data-filter="all" class="filter-tab px-4 py-1.5 rounded-xl font-semibold text-xs transition-all bg-slate-900 text-white shadow-sm border">All Venues</button>
-      <button onclick="setFilter('Deickmann Hall')" data-filter="Deickmann Hall" class="filter-tab px-4 py-1.5 rounded-xl font-semibold text-xs transition-all bg-white text-gray-600 hover:bg-gray-100 border">📚 Deickmann</button>
-      <button onclick="setFilter('Gnanamma Hall')" data-filter="Gnanamma Hall" class="filter-tab px-4 py-1.5 rounded-xl font-semibold text-xs transition-all bg-white text-gray-600 hover:bg-gray-100 border">📖 Gnanamma</button>
-      <button onclick="setFilter('St.Joseph\'s Auditorium')" data-filter="St.Joseph's Auditorium" class="filter-tab px-4 py-1.5 rounded-xl font-semibold text-xs transition-all bg-white text-gray-600 hover:bg-gray-100 border">🎭 St. Joseph's</button>
+      <button data-filter="all" class="filter-tab px-4 py-1.5 rounded-xl font-semibold text-xs transition-all bg-slate-900 text-white shadow-sm border">All Venues</button>
+      <button data-filter="Deickmann Hall" class="filter-tab px-4 py-1.5 rounded-xl font-semibold text-xs transition-all bg-white text-gray-600 hover:bg-gray-100 border">📚 Deickmann</button>
+      <button data-filter="Gnanamma Hall" class="filter-tab px-4 py-1.5 rounded-xl font-semibold text-xs transition-all bg-white text-gray-600 hover:bg-gray-100 border">📖 Gnanamma</button>
+      <button data-filter="St.Joseph's Auditorium" class="filter-tab px-4 py-1.5 rounded-xl font-semibold text-xs transition-all bg-white text-gray-600 hover:bg-gray-100 border">🎭 St. Joseph's</button>
     </div>
 
     <div class="bg-white rounded-2xl border shadow-sm overflow-hidden">
       <div class="p-4 bg-slate-50 border-b font-bold text-xs uppercase tracking-wider text-gray-500 flex justify-between items-center">
         <span id="tableViewStateIndicator">📂 Active Ledger Rows</span>
-        <button id="emptyTrashBtn" onclick="purgeEntireTrash()" class="hidden text-red-600 hover:text-red-700 font-bold normal-case hover:underline">⚠️ Empty Trash Bin</button>
+        <button id="emptyTrashBtn" class="hidden text-red-600 hover:text-red-700 font-bold normal-case hover:underline">⚠️ Empty Trash Bin</button>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
@@ -88,7 +94,7 @@
             </tr>
           </thead>
           <tbody id="adminTableBody" class="divide-y divide-gray-100 text-sm text-gray-700">
-            </tbody>
+          </tbody>
         </table>
       </div>
     </div>
@@ -103,7 +109,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, query, onSnapshot, doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, query, onSnapshot, doc, deleteDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA1VE0YP88fk7tJ-NynBt_A0dNnoMyVi44",
@@ -117,6 +123,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// Initialize EmailJS public key
+emailjs.init({
+  publicKey: "i0ZPxRKcUUiCcquHs"
+});
+
 // LOCAL MANAGEMENT APP STATES
 let currentFilter = 'all'; 
 let viewingTrash = false;
@@ -126,10 +137,24 @@ let globalTrashBookings = [];
 // GLOBAL SECURITY CONFIG
 const CORRECT_PASSWORD = "Admin@2026"; 
 
+// PASSWORD VISIBILITY TOGGLE SYSTEM
+const adminPassInput = document.getElementById('adminPass');
+const passwordToggleBtn = document.getElementById('passwordToggle');
+
+passwordToggleBtn.addEventListener('click', function() {
+  if (adminPassInput.type === 'password') {
+    adminPassInput.type = 'text';
+    passwordToggleBtn.textContent = '🙈';
+  } else {
+    adminPassInput.type = 'password';
+    passwordToggleBtn.textContent = '👁️';
+  }
+});
+
 // SAFE FORM LISTENERS VIA MODULE SCOPE
 document.getElementById('loginForm').addEventListener('submit', function(e) {
   e.preventDefault();
-  const input = document.getElementById('adminPass').value;
+  const input = adminPassInput.value;
   const errorEl = document.getElementById('loginError');
   
   if (input === CORRECT_PASSWORD) {
@@ -137,14 +162,14 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     unlockDashboard();
   } else {
     errorEl.classList.remove('hidden');
-    document.getElementById('adminPass').value = "";
+    adminPassInput.value = "";
   }
 });
 
-window.handleLogout = function() {
+document.getElementById('logoutBtn').addEventListener('click', function() {
   sessionStorage.removeItem('isAdminAuth');
   window.location.reload();
-};
+});
 
 function checkAuthOnLoad() {
   if (sessionStorage.getItem('isAdminAuth') === 'true') {
@@ -157,6 +182,11 @@ function unlockDashboard() {
   const content = document.getElementById('adminContent');
   content.classList.remove('opacity-0');
 }
+
+// SECURE TERMINATION ON EXIT
+window.addEventListener('pagehide', () => {
+  sessionStorage.removeItem('isAdminAuth');
+});
 
 // ATTACH REALTIME FIRESTORE MASTER SYNC
 const activeQuery = query(collection(db, "bookings"));
@@ -203,9 +233,29 @@ function updateInterfaceEngine() {
     document.getElementById('filterTabsContainer').classList.remove('pointer-events-none', 'opacity-40');
   }
 
-  const filteredRows = targetedDataset.filter(item => {
+  let filteredRows = targetedDataset.filter(item => {
     if (viewingTrash || currentFilter === 'all') return true;
     return item.hall === currentFilter;
+  });
+
+  // ROBUST CHRONOLOGICAL REGISTRATION SORTING ENGINE (NEWEST ON TOP)
+  filteredRows.sort((a, b) => {
+    // 1. Check if true Firestore timestamp fields exist
+    const timeA = a.createdAt || a.timestamp || 0;
+    const timeB = b.createdAt || b.timestamp || 0;
+    if (timeA && timeB) return timeB - timeA;
+
+    // 2. Fallback: Parse incremental serial numbers out of custom Document IDs (e.g., ST-ANN-0042)
+    const matchA = (a.id || "").match(/\d+/);
+    const matchB = (b.id || "").match(/\d+/);
+    if (matchA && matchB) {
+      return parseInt(matchB[0], 10) - parseInt(matchA[0], 10);
+    }
+
+    // 3. Ultimate Fallback: Direct structural string character check
+    const idA = a.id || "";
+    const idB = b.id || "";
+    return idB.localeCompare(idA);
   });
 
   if (filteredRows.length === 0) {
@@ -223,35 +273,59 @@ function updateInterfaceEngine() {
     const startTime = formatTime(row.startTime);
     const endTime = formatTime(row.endTime || row.startTime);
     
-    // Safely parse newly added input parameters
     const dept = row.department || "General / Not Specified";
     const email = row.email || "No email stored";
+    
+    // Status Resolution Layer
+    const currentStatus = row.status || "Pending"; 
+    let statusBadgeMarkup = "";
+    
+    if (currentStatus === "Confirmed") {
+      statusBadgeMarkup = `<span class="ml-2 bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Confirmed</span>`;
+    } else if (currentStatus === "Cancelled") {
+      statusBadgeMarkup = `<span class="ml-2 bg-gray-200 text-gray-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Cancelled</span>`;
+    } else {
+      statusBadgeMarkup = `<span class="ml-2 bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Pending</span>`;
+    }
 
     const tr = document.createElement('tr');
     tr.className = "hover:bg-slate-50 transition-colors duration-150 animate-fade-in";
     
     let actionMarkup = "";
     if (!viewingTrash) {
+      const confirmBtnStyles = currentStatus === "Confirmed" 
+        ? "bg-emerald-600 text-white border border-emerald-600 px-3 py-1 rounded-md text-xs font-bold shadow-sm element-confirm-btn"
+        : "text-emerald-600 border border-emerald-200 hover:bg-emerald-50 px-3 py-1 rounded-md text-xs font-semibold bg-white element-confirm-btn";
+
+      const cancelBtnStyles = currentStatus === "Cancelled"
+        ? "bg-amber-600 text-white border border-amber-600 px-3 py-1 rounded-md text-xs font-bold shadow-sm element-cancel-btn"
+        : "text-amber-600 border border-amber-200 hover:bg-amber-50 px-3 py-1 rounded-md text-xs font-semibold bg-white element-cancel-btn";
+
       actionMarkup = `
-        <td class="p-4 text-right pr-6" id="action-cell-${row.id}">
-          <button onclick="window.moveToTrash('${row.id}')" class="text-xs font-bold text-red-500 hover:text-red-700 hover:underline">
-            Move to Trash
-          </button>
+        <td class="p-4 text-right pr-6">
+          <div class="flex justify-end gap-2 items-center">
+            <button class="${confirmBtnStyles}">Confirm</button>
+            <button class="${cancelBtnStyles}">Cancel</button>
+            <button class="text-xs p-1 ml-1 text-gray-400 hover:text-red-500 font-medium element-trash-btn" title="Move to Trash">🗑️</button>
+          </div>
         </td>`;
     } else {
       actionMarkup = `
-        <td class="p-4 text-right pr-6 flex justify-end gap-3" id="action-cell-${row.id}">
-          <button onclick="window.restoreFromTrash('${row.id}')" class="text-xs font-bold text-green-600 hover:text-green-700 hover:underline">
-            Restore
-          </button>
-          <button onclick="window.permanentDelete('${row.id}')" class="text-xs font-bold text-gray-400 hover:text-red-600 hover:underline">
-            Purge
-          </button>
+        <td class="p-4 text-right pr-6">
+          <div class="flex justify-end gap-3">
+            <button class="text-xs font-bold text-green-600 hover:text-green-700 hover:underline element-restore-btn">Restore</button>
+            <button class="text-xs font-bold text-gray-400 hover:text-red-600 hover:underline element-purge-btn">Purge</button>
+          </div>
         </td>`;
     }
 
     tr.innerHTML = `
-      <td class="p-4 pl-6 font-semibold text-gray-900">${row.hall || "Unknown Hall"}</td>
+      <td class="p-4 pl-6 font-semibold text-gray-900">
+        <div class="flex items-center flex-wrap gap-1">
+          <span>${row.hall || "Unknown Hall"}</span>
+          ${statusBadgeMarkup}
+        </div>
+      </td>
       <td class="p-4 font-medium text-slate-700">${row.eventName || "Untitled Event"}</td>
       <td class="p-4 text-xs font-medium text-gray-600"><span class="bg-slate-100 px-2 py-1 rounded">${dept}</span></td>
       <td class="p-4 text-xs text-blue-600 select-all font-mono">${email}</td>
@@ -263,12 +337,66 @@ function updateInterfaceEngine() {
       </td>
       ${actionMarkup}
     `;
+
+    if (!viewingTrash) {
+      tr.querySelector('.element-confirm-btn').addEventListener('click', () => updateStatus(row.id, 'Confirmed'));
+      tr.querySelector('.element-cancel-btn').addEventListener('click', () => updateStatus(row.id, 'Cancelled'));
+      tr.querySelector('.element-trash-btn').addEventListener('click', () => moveToTrash(row.id));
+    } else {
+      tr.querySelector('.element-restore-btn').addEventListener('click', () => restoreFromTrash(row.id));
+      tr.querySelector('.element-purge-btn').addEventListener('click', () => permanentDelete(row.id));
+    }
+
     tableBody.appendChild(tr);
   });
 }
 
+// DIRECT STATUS MANAGEMENT OPERATION WITH EMBEDDED NOTIFICATION PIPELINE
+async function updateStatus(docId, targetStatus) {
+  try {
+    const docRef = doc(db, "bookings", docId);
+    await updateDoc(docRef, {
+      status: targetStatus
+    });
+    
+    const record = globalActiveBookings.find(b => b.id === docId);
+    if (record && record.email) {
+      const startTimeFormatted = formatTime(record.startTime);
+      const endTimeFormatted = formatTime(record.endTime || record.startTime);
+      
+      const emailTemplateParams = {
+        to_email: record.email,
+        hall_name: record.hall || "St. Ann's Hall",
+        event_name: record.eventName || "Scheduled Reservation",
+        event_date: record.date || "N/A",
+        event_time: `${startTimeFormatted} - ${endTimeFormatted}`
+      };
+
+      let targetTemplateId = "";
+      if (targetStatus === "Confirmed") {
+        targetTemplateId = "template_cqefad4"; 
+      } else if (targetStatus === "Cancelled") {
+        targetTemplateId = "template_cancelled"; 
+      }
+
+      if (targetTemplateId) {
+        emailjs.send("service_pn9wdmt", targetTemplateId, emailTemplateParams)
+          .then(() => {
+            console.log(`✉️ Operational Notice dispatched successfully to: ${record.email}`);
+          })
+          .catch((err) => {
+            console.error("❌ Notification layer engine error:", err);
+          });
+      }
+    }
+  } catch(e) {
+    console.error(e);
+    alert("❌ Action failed: Unable to update event status.");
+  }
+}
+
 // TRASH INTERACTIVE OPERATIONS CAPABILITIES
-window.moveToTrash = async function(docId) {
+async function moveToTrash(docId) {
   try {
     const record = globalActiveBookings.find(b => b.id === docId);
     if (!record) return;
@@ -280,7 +408,9 @@ window.moveToTrash = async function(docId) {
       email: record.email || "",
       date: record.date,
       startTime: record.startTime,
-      endTime: record.endTime || record.startTime
+      endTime: record.endTime || record.startTime,
+      status: record.status || "Pending",
+      timestamp: record.timestamp || Date.now()
     });
 
     await deleteDoc(doc(db, "bookings", docId));
@@ -288,9 +418,9 @@ window.moveToTrash = async function(docId) {
     console.error(e);
     alert("❌ Operation failed moving entry to trash repository.");
   }
-};
+}
 
-window.restoreFromTrash = async function(docId) {
+async function restoreFromTrash(docId) {
   try {
     const record = globalTrashBookings.find(b => b.id === docId);
     if (!record) return;
@@ -302,7 +432,9 @@ window.restoreFromTrash = async function(docId) {
       email: record.email || "",
       date: record.date,
       startTime: record.startTime,
-      endTime: record.endTime || record.startTime
+      endTime: record.endTime || record.startTime,
+      status: record.status || "Pending",
+      timestamp: record.timestamp || Date.now()
     });
 
     await deleteDoc(doc(db, "trash_bookings", docId));
@@ -310,18 +442,18 @@ window.restoreFromTrash = async function(docId) {
     console.error(e);
     alert("❌ Error restoring booking item record.");
   }
-};
+}
 
-window.permanentDelete = async function(docId) {
+async function permanentDelete(docId) {
   if (!confirm("Are you sure you want to permanently delete this booking? This action cannot be undone.")) return;
   try {
     await deleteDoc(doc(db, "trash_bookings", docId));
   } catch(e) {
     console.error(e);
   }
-};
+}
 
-window.purgeEntireTrash = async function() {
+async function purgeEntireTrash() {
   if (!confirm("💥 Danger! Are you sure you want to completely empty the Trash Bin? Everything inside will be destroyed forever!")) return;
   try {
     for (const item of globalTrashBookings) {
@@ -330,10 +462,12 @@ window.purgeEntireTrash = async function() {
   } catch(err) {
     console.error(err);
   }
-};
+}
+
+document.getElementById('emptyTrashBtn').addEventListener('click', purgeEntireTrash);
 
 // GLOBAL SWITCH TOGGLER EVENTS HANDLERS
-window.setFilter = function(val) {
+function setFilter(val) {
   currentFilter = val;
   viewingTrash = false;
   document.getElementById('trashBtn').classList.remove('bg-slate-900', 'text-white');
@@ -346,9 +480,15 @@ window.setFilter = function(val) {
     }
   });
   updateInterfaceEngine();
-};
+}
 
-window.toggleTrashView = function() {
+document.querySelectorAll('.filter-tab').forEach(tab => {
+  tab.addEventListener('click', (e) => {
+    setFilter(e.target.getAttribute('data-filter'));
+  });
+});
+
+function toggleTrashView() {
   viewingTrash = !viewingTrash;
   const trashBtn = document.getElementById('trashBtn');
   
@@ -359,7 +499,9 @@ window.toggleTrashView = function() {
     setFilter('all');
   }
   updateInterfaceEngine();
-};
+}
+
+document.getElementById('trashBtn').addEventListener('click', toggleTrashView);
 
 function formatTime(timeStr) {
   if (!timeStr || timeStr.includes('AM') || timeStr.includes('PM')) return timeStr;
