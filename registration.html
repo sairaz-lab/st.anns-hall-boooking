@@ -128,7 +128,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
-            <input type="tel" name="phone" required class="form-input w-full border border-gray-200 rounded-xl px-4 py-3 text-lg focus:ring-2 focus:border-green-500 transition-all duration-200" placeholder="+1 (555) 123-4567" />
+            <input type="tel" name="phone" required class="form-input w-full border border-gray-200 rounded-xl px-4 py-3 text-lg focus:ring-2 focus:border-green-500 transition-all duration-200" placeholder="+91 XXXXXXXXXX" />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Department / Organization</label>
@@ -417,6 +417,34 @@
         // Save to Firebase
         await addDoc(collection(db, "bookings"), data);
         
+        // 🔥 INSTANT ADMIN WHATSAPP DISPATCH VIA ULTRAMSG
+        try {
+          const adminPhoneNumber = "919876543210"; // 📱 Swap this out with the admin's active WhatsApp phone number (include country code, no spaces/plus)
+          const messageBody = `🚨 *New Hall Booking Submitted!*\n\n` +
+                              `• *Venue:* ${data.hall}\n` +
+                              `• *Event:* ${data.eventName}\n` +
+                              `• *Organizer:* ${data.fullName}\n` +
+                              `• *Dept:* ${data.department || 'N/A'}\n` +
+                              `• *Phone:* ${data.phone}\n` +
+                              `• *Date:* ${selectedDate}\n` +
+                              `• *Timings:* ${formatToAmPm(data.startTime)} - ${formatToAmPm(data.endTime)}\n` +
+                              `• *Attendees:* ${data.attendees}\n\n` +
+                              `👉 _Open the Admin Dashboard to review or crosscheck._`;
+
+          await fetch("https://api.ultramsg.com/instance182693/messages/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              "token": "tdb0p12wzko2tok1",
+              "to": adminPhoneNumber,
+              "body": messageBody
+            })
+          });
+          console.log('✅ Admin WhatsApp alert pushed successfully.');
+        } catch (waError) {
+          console.error('⚠️ WhatsApp gateway failed, but database save succeeded:', waError);
+        }
+
         // 🔥 GLASSMORPHISM SUCCESS MODAL
         const successModal = document.getElementById('successModal');
         const successTitle = document.getElementById('successTitle');
