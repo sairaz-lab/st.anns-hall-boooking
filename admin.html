@@ -240,19 +240,16 @@ function updateInterfaceEngine() {
 
   // ROBUST CHRONOLOGICAL REGISTRATION SORTING ENGINE (NEWEST ON TOP)
   filteredRows.sort((a, b) => {
-    // 1. Check if true Firestore timestamp fields exist
     const timeA = a.createdAt || a.timestamp || 0;
     const timeB = b.createdAt || b.timestamp || 0;
     if (timeA && timeB) return timeB - timeA;
 
-    // 2. Fallback: Parse incremental serial numbers out of custom Document IDs (e.g., ST-ANN-0042)
     const matchA = (a.id || "").match(/\d+/);
     const matchB = (b.id || "").match(/\d+/);
     if (matchA && matchB) {
       return parseInt(matchB[0], 10) - parseInt(matchA[0], 10);
     }
 
-    // 3. Ultimate Fallback: Direct structural string character check
     const idA = a.id || "";
     const idB = b.id || "";
     return idB.localeCompare(idA);
@@ -351,21 +348,29 @@ function updateInterfaceEngine() {
   });
 }
 
-// DIRECT STATUS MANAGEMENT OPERATION WITH EMBEDDED NOTIFICATION PIPELINE
+// DIRECT STATUS MANAGEMENT OPERATION WITH EMBEDDED NOTIFICATION PIPELINE (FIXED)
 async function updateStatus(docId, targetStatus) {
   try {
+    // 1. Locate the specific record from local state safely BEFORE database alteration
+    const record = globalActiveBookings.find(b => b.id === docId);
+    if (!record) {
+      alert("❌ Booking record not found.");
+      return;
+    }
+
+    // 2. Perform the database update
     const docRef = doc(db, "bookings", docId);
     await updateDoc(docRef, {
       status: targetStatus
     });
     
-    const record = globalActiveBookings.find(b => b.id === docId);
-    if (record && record.email) {
+    // 3. Dispatch the email using the pre-captured record fields to avoid race conditions
+    if (record.email) {
       const startTimeFormatted = formatTime(record.startTime);
       const endTimeFormatted = formatTime(record.endTime || record.startTime);
       
       const emailTemplateParams = {
-        to_email: record.email,
+        to_email: record.email.trim(),
         hall_name: record.hall || "St. Ann's Hall",
         event_name: record.eventName || "Scheduled Reservation",
         event_date: record.date || "N/A",
@@ -380,18 +385,14 @@ async function updateStatus(docId, targetStatus) {
       }
 
       if (targetTemplateId) {
-        emailjs.send("service_pn9wdmt", targetTemplateId, emailTemplateParams)
-          .then(() => {
-            console.log(`✉️ Operational Notice dispatched successfully to: ${record.email}`);
-          })
-          .catch((err) => {
-            console.error("❌ Notification layer engine error:", err);
-          });
+        // Await the email send explicitly to ensure complete execution context
+        await emailjs.send("service_pn9wdmt", targetTemplateId, emailTemplateParams);
+        console.log(`✉️ Operational Notice dispatched successfully to: ${record.email}`);
       }
     }
   } catch(e) {
-    console.error(e);
-    alert("❌ Action failed: Unable to update event status.");
+    console.error("❌ Notification layer engine error:", e);
+    alert("⚠ Status updated, but email transmission met an error. Check EmailJS dashboard.");
   }
 }
 
