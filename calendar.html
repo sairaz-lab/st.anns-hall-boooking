@@ -566,6 +566,13 @@ document.addEventListener('DOMContentLoaded', function () {
     // Normalize rendering local visual times safely
     const [y, m, d] = dateStr.split('-');
     const date = new Date(y, m - 1, d);
+
+    // Check if the clicked date is a past date
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const targetDateCopy = new Date(date);
+    targetDateCopy.setHours(0,0,0,0);
+    const isPastDate = targetDateCopy < today;
     
     modalTitle.textContent = date.toLocaleDateString('en-US', {
       weekday: 'long',
@@ -575,18 +582,30 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     if (!events || events.length === 0) {
-      modalBody.innerHTML = `
-        <div class="no-events">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">No events</h3>
-          <p class="text-sm mb-6">This date is completely free!</p>
-          <button onclick="bookNow('${dateStr}')" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-6 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-2">
-            Book Now
-          </button>
-        </div>
-      `;
+      if (isPastDate) {
+        modalBody.innerHTML = `
+          <div class="no-events">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-gray-400">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">No events</h3>
+            <p class="text-sm text-red-500 font-medium">Cannot book on past dates.</p>
+          </div>
+        `;
+      } else {
+        modalBody.innerHTML = `
+          <div class="no-events">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">No events</h3>
+            <p class="text-sm mb-6">This date is completely free!</p>
+            <button onclick="bookNow('${dateStr}')" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-6 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-2">
+              Book Now
+            </button>
+          </div>
+        `;
+      }
     } else {
       const DAY_START = 9 * 60; // 09:00 AM
       const DAY_END = 15 * 60;  // 03:00 PM
@@ -639,6 +658,14 @@ document.addEventListener('DOMContentLoaded', function () {
               Slots Full
             </h4>
             <p class="text-xs text-gray-500 mt-1">All standard operating hours (9:00 AM - 3:00 PM) are fully booked.</p>
+          </div>
+        `;
+      } else if (isPastDate) {
+        htmlContent += `
+          <div class="mt-4 p-4 bg-gray-100 rounded-xl text-center">
+            <h4 class="text-base font-semibold text-red-500 flex items-center justify-center gap-2">
+              ❌ Cannot book on past dates
+            </h4>
           </div>
         `;
       } else {
