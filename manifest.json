@@ -1,0 +1,17 @@
+{
+  "name": "St Anns Halls Admin",
+  "short_name": "StAnnsHalls",
+  "start_url": "./admin.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#059669",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://ik.imagekit.io/syustaging/SYU_PREPROD/LOGO_Zd7PFpkXn.webp?tr=w-512,h-512",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    }
+  ]
+}
